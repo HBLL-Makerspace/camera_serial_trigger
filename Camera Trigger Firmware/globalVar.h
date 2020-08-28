@@ -19,7 +19,7 @@
 #define GLOBALVAR_EN_FOC 1
 #define GLOBALVAR_DS_SHUT 2
 #define GLOBALVAR_DS_FOC 3
-#define GLOBALVAR_MAX_EVENTS 16
+#define GLOBALVAR_MAX_EVENTS 256
 
 typedef void (*handler)();
 

@@ -3,15 +3,19 @@
  *
  * Created: 7/29/2020 4:43:45 PM
  *  Author: chadb
+ * 	Co-Author: Ben Brenkman
  */ 
 #include "timingEngine.h"
+#include "displayDriver.h"
 #include "eepromDriver.h"
 #include "globalVar.h"
 #include "shutterDriver.h"
+#include "events.h"
 #include <stdint.h>
-static uint16_t timings[GLOBALVAR_MAX_EVENTS];
+// static uint16_t timings[GLOBALVAR_MAX_EVENTS];
+static Event events[GLOBALVAR_MAX_EVENTS];
 static uint8_t eventCount;
-static uint32_t eventTypes;
+// static uint32_t eventTypes;
 
 static enum timeEngine_t {
 	init_st,
@@ -25,8 +29,8 @@ void timingEngine_init(){
 	engineState = done_st;
 }
 
-static void setEvent(uint8_t event){
-	switch (event){
+static void setEvent(Event event){
+	switch (event.type){
 		case GLOBALVAR_EN_SHUT:
 			shutterDriver_enableAllShutter();
 			break;
@@ -44,37 +48,37 @@ static void setEvent(uint8_t event){
 	}
 }
 
-static uint8_t getNextEvent(){
-	uint8_t temp = (uint8_t)(eventTypes & 0b11);
-	eventTypes = (eventTypes >> 2);
-	return temp;
+static Event getEvent(uint8_t eventIndex){
+	return events[eventIndex];
 }
 void timingEngine_tick(){
 	static uint8_t currentEventCount = 0;
-	static uint16_t counter = 0;
-	static uint8_t nextEvent = 0;
-	switch(engineState){
+	static uint32_t counter = 0;
+	static Event nextEvent;
+
+	/// Transitions
+	switch(engineState) {
 		case init_st:
 			engineState = load_next_event_st;
 			currentEventCount = 0;
 			break;
 		case load_next_event_st:
-			if(counter <= 1){
+			if(counter <= 1) {
 				engineState = set_event_st;
 			} else {
-				counter --;
+				counter--;
 				engineState = delay_st;
 			}
 			break;
 		case delay_st:
-			if(counter <= 1){
+			if(counter <= 1) {
 				engineState = set_event_st;
 			} else {
 				engineState = delay_st;
 			}
 			break;
 		case set_event_st:
-			if(currentEventCount >= eventCount){
+			if(currentEventCount >= eventCount) {
 				engineState = done_st;
 			} else {
 				engineState = load_next_event_st;
@@ -87,17 +91,19 @@ void timingEngine_tick(){
 			engineState = init_st;
 			break;
 	}
-	switch (engineState){
+
+	/// Actions
+	switch (engineState) {
 		case init_st:
 			currentEventCount = 0;
 			break;
 		case load_next_event_st:
-			counter = timings[currentEventCount];
-			nextEvent = getNextEvent();
-			currentEventCount ++;
+			nextEvent = getEvent(currentEventCount);
+			counter = getEventTiming(nextEvent) * TIMINGENGINE_TICKS_PER_100_MILLIS;
+			currentEventCount++;
 			break;
 		case delay_st:
-			counter --;
+			counter--;
 			break;
 		case set_event_st:
 			setEvent(nextEvent);
@@ -108,11 +114,23 @@ void timingEngine_tick(){
 			statusLight_setError(0b10101101);
 	}
 }
-void timingEngine_loadTimings(){
-	eventTypes = eepromDriver_readDword(GLOBALVAR_TIMING_SETPOINTS);
+void timingEngine_loadEvents() {
+	displayDriver_clearDispaly();
 	eventCount = eepromDriver_readDword(GLOBALVAR_TIMING_SET_COUNT);
-	for (uint8_t i = 0; i < GLOBALVAR_MAX_EVENTS; i++){
-		timings[i] = (uint16_t)(eepromDriver_readFloat(GLOBALVAR_TIMING_BEGIN_MEM_SLOT + i) / TIMINGENGINE_TICK_TIME);
+	EventMemoryConverter _converter;
+	for (uint8_t i = 0; i < eventCount; i++){
+		_converter.memoryData = (eepromDriver_readFloat(GLOBALVAR_TIMING_BEGIN_MEM_SLOT + i));
+		events[i] = _converter.event;
+		displayDriver_writeChar(_converter.event.type);
 	}
+}
+
+void timingEngine_runEvents() {
 	engineState = init_st;
+}
+
+
+void timingEngine_loadAndRunEvents() {
+	timingEngine_loadEvents();
+	timingEngine_runEvents();
 }

@@ -176,6 +176,12 @@
     <Compile Include="eventEditor.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="events.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="events.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="globalVar.c">
       <SubType>compile</SubType>
     </Compile>

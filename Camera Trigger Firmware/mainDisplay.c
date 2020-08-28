@@ -106,7 +106,7 @@ void mainDisplay_openMenu(){
 void mainDisplay_init(){
 	
 	buttonDriver_clearAllHandlers();
-	buttonDriver_addHandler(7, true, timingEngine_loadTimings);
+	buttonDriver_addHandler(7, true, timingEngine_loadAndRunEvents);
 
 //	buttonDriver_addHandler(7, true, shutterDriver_enableAllShutter);
 //	buttonDriver_addHandler(7, false, shutterDriver_disableAllShutter);

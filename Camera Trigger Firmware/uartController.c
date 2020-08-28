@@ -55,8 +55,8 @@ ISR(USART0_RX_vect, ISR_BLOCK){
 	if(UCSR0A & (1 << FE0)){
 		if(!uartError){
 			statusLight_setError(0b01001001);
-					displayDriver_clearDispaly();
-		displayDriver_writeString("Frame Error");
+			displayDriver_clearDispaly();
+			displayDriver_writeString("Frame Error");
 			uartError = true;
 			myChar = UDR0;
 		} 
