@@ -80,7 +80,7 @@ void menuDriver_drawMenu(){
 		displayDriver_writeString(BLANKLINE);
 	}
 	draw = true;
-
+	usart0_send("drawing menu\r\n");
 }
 
 void menuDriver_tick(){

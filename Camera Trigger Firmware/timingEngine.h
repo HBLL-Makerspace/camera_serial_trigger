@@ -3,8 +3,7 @@
  *
  * Created: 7/29/2020 4:44:00 PM
  *  Author: chadb
- */ 
-
+ */
 
 #ifndef TIMINGENGINE_H_
 #define TIMINGENGINE_H_
@@ -16,7 +15,5 @@ void timingEngine_tick();
 void timingEngine_loadEvents();
 void timingEngine_runEvents();
 void timingEngine_loadAndRunEvents();
-
-
 
 #endif /* TIMINGENGINE_H_ */
